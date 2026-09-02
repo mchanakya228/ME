@@ -1,0 +1,380 @@
+# Quantum Mechanics — Full Walkthrough (Wavefunctions → Tunneling → MOSFET)
+
+This rebuilds your notes from the ground up, topic by topic. Each section has:
+**Prerequisites → Concept → Derivation → Solved Example.**
+
+---
+
+## 0. Prerequisites for the Whole Chapter
+
+Before touching quantum mechanics, you need comfort with:
+
+| Tool | Why you need it |
+|---|---|
+| Complex numbers ($i^2=-1$, $e^{i\theta}=\cos\theta+i\sin\theta$) | Wavefunctions are complex-valued |
+| Differentiation & integration | Operators are derivatives; probabilities are integrals |
+| Second-order ODEs ($\psi'' + k^2\psi = 0$) | Schrödinger equation inside a well is exactly this |
+| Linear algebra basics (eigenvectors, eigenvalues, $Ax=\lambda x$) | Energy levels *are* eigenvalues of an operator |
+| Basic probability (normalization of a distribution) | $|\psi|^2$ is a probability density |
+
+If any of these feel shaky, that's the first thing to shore up — everything below leans on them.
+
+---
+
+## 1. The Wavefunction and Normalization
+
+**Prerequisite:** integration, idea of a probability density (like a PDF in statistics).
+
+**Concept:** In quantum mechanics, a particle doesn't have a definite position. Instead, it's described by a complex function $\psi(x,t)$, and
+
+$$|\psi(x,t)|^2$$
+
+is the **probability density** of finding the particle at position $x$ at time $t$. To be a valid probability density, the total probability of finding the particle *somewhere* must be 1:
+
+$$\int_{-\infty}^{\infty} |\psi(x,t)|^2\, dx = 1$$
+
+This is called **normalization**. It's not a law of physics — it's a bookkeeping requirement: probabilities must add up to 100%, exactly like $\int f(x)dx = 1$ for any PDF in statistics.
+
+**Solved Example 1.1**
+A particle in a box of width $L$ has (unnormalized) wavefunction $\psi(x) = A\sin(\pi x/L)$ for $0 \le x \le L$. Find $A$.
+
+$$\int_0^L |A|^2 \sin^2(\pi x/L)\,dx = 1$$
+
+Using $\int_0^L \sin^2(\pi x/L)\,dx = L/2$:
+
+$$|A|^2 \cdot \frac{L}{2} = 1 \quad\Rightarrow\quad A = \sqrt{\frac{2}{L}}$$
+
+This is exactly the constant you'll see again in Section 6 — it's not a coincidence, it comes from this same normalization condition.
+
+---
+
+## 2. Operators
+
+**Prerequisite:** Section 1 (wavefunctions), basic idea of a "function that acts on a function" (analogous to a matrix acting on a vector).
+
+**Concept:** In classical mechanics, position and momentum are just numbers. In quantum mechanics, **every measurable quantity (observable) is represented by an operator** — a rule that acts on $\psi$ to produce a new function. This is the key conceptual jump: physical quantities become *actions*, not values, until you measure them.
+
+| Quantity | Operator |
+|---|---|
+| Position | $\hat{x} = x$ (just multiply by $x$) |
+| Momentum | $\hat{P} = -i\hbar \dfrac{d}{dx}$ |
+| Energy | $i\hbar \dfrac{\partial}{\partial t}$ |
+| Hamiltonian (total energy) | $\hat{H}$ |
+
+### 2.1 Position Operator
+
+The simplest one — just multiply by $x$.
+
+**Solved Example 2.1**
+$\psi = x^2$. Find $\hat{x}\psi$.
+
+$$\hat{x}\psi = x \cdot x^2 = x^3$$
+
+### 2.2 Momentum Operator
+
+$$\hat{P} = -i\hbar \frac{d}{dx}$$
+
+**Why a derivative?** Momentum is tied to how rapidly the wave oscillates in space — a shorter wavelength (faster spatial oscillation) means higher momentum (this is the de Broglie relation $p = h/\lambda$ in disguise). A derivative measures exactly that rate of oscillation.
+
+**Solved Example 2.2**
+$\psi = e^{ikx}$ (a plane wave). Find the momentum.
+
+$$\frac{d\psi}{dx} = ik\, e^{ikx}$$
+
+$$\hat{P}\psi = -i\hbar (ik\, e^{ikx}) = \hbar k \, e^{ikx} = \hbar k\, \psi$$
+
+Since $\hat P \psi = (\hbar k)\,\psi$, the wavefunction is an **eigenfunction** of $\hat P$ with eigenvalue $\hbar k$. So:
+
+$$P = \hbar k$$
+
+**Interpretation:** a plane wave has a perfectly definite momentum — this is the quantum version of "a pure sine wave has one exact frequency."
+
+### 2.3 The Hamiltonian (Total Energy Operator)
+
+Classically, total energy = kinetic + potential: $E = T + V$, and $T = \dfrac{P^2}{2m}$.
+
+Substitute the momentum operator for $P$:
+
+$$\hat{P}^2 = \left(-i\hbar\frac{d}{dx}\right)^2 = -\hbar^2 \frac{d^2}{dx^2}$$
+
+(the two factors of $-i$ multiply to $-1$, leaving $-\hbar^2$)
+
+So:
+
+$$\hat{H} = -\frac{\hbar^2}{2m}\frac{d^2}{dx^2} + V(x)$$
+
+This single object — the Hamiltonian — is the engine of essentially all of non-relativistic quantum mechanics.
+
+---
+
+## 3. The Schrödinger Equation
+
+**Prerequisite:** Section 2 (Hamiltonian, momentum operator).
+
+**Concept:** Take the classical energy relation $E = \dfrac{P^2}{2m} + V$ and turn it into an operator equation by replacing $E \to i\hbar\dfrac{\partial}{\partial t}$ and $P \to \hat P$:
+
+$$\left(-\frac{\hbar^2}{2m}\frac{d^2}{dx^2} + V\right)\psi = i\hbar\frac{\partial \psi}{\partial t}$$
+
+This is the **time-dependent Schrödinger equation**. Everything in non-relativistic quantum mechanics — atoms, wells, tunneling, transistors — starts from this one line.
+
+---
+
+## 4. Separation of Variables
+
+**Prerequisite:** ODEs, the idea that a function of two independent variables can sometimes be split into a product of two single-variable functions.
+
+**Concept:** Assume a special-form solution:
+
+$$\psi(x,t) = X(x)\,T(t)$$
+
+Substitute into the Schrödinger equation and divide both sides by $X(x)T(t)$. You get:
+
+$$\underbrace{\frac{1}{X}\left(-\frac{\hbar^2}{2m}X'' + VX\right)}_{\text{depends only on } x} = \underbrace{i\hbar \frac{1}{T}\frac{dT}{dt}}_{\text{depends only on } t}$$
+
+A function of $x$ alone can only equal a function of $t$ alone if **both equal the same constant**. Call that constant $E$ (it will turn out to be the energy).
+
+**Time equation:**
+$$i\hbar \frac{dT}{dt} = ET \quad\Rightarrow\quad T(t) = e^{-iEt/\hbar}$$
+
+**Space equation:**
+$$\hat H X = EX$$
+
+This space equation is called the **time-independent Schrödinger equation**, and it's the one you'll actually solve for wells, atoms, etc. Once you know $X(x)$ and $E$, the full solution is $\psi(x,t) = X(x)e^{-iEt/\hbar}$.
+
+---
+
+## 5. Eigenvalue Interpretation
+
+**Prerequisite:** linear algebra — $A\vec x = \lambda \vec x$ means $\vec x$ is an eigenvector of matrix $A$ with eigenvalue $\lambda$.
+
+**Concept:** The equation $\hat H X = EX$ has *exactly* the same structure as $A\vec{x} = \lambda \vec{x}$:
+
+| Matrix picture | Quantum picture |
+|---|---|
+| Matrix $A$ | Hamiltonian $\hat H$ |
+| Eigenvector $\vec x$ | Wavefunction $\psi$ |
+| Eigenvalue $\lambda$ | Energy $E$ |
+
+So **finding the allowed energies of a system is literally the same mathematical problem as finding the eigenvalues of a matrix** — except the "matrix" is a differential operator and the "vector" is a function. This is why energy levels come out discrete: just as a matrix has a specific set of eigenvalues, not just any number is an eigenvalue.
+
+---
+
+## 6. The Infinite Potential Well ("Particle in a Box")
+
+**Prerequisite:** Sections 3–5 (time-independent Schrödinger equation, ODE solving), Section 1 (normalization).
+
+**Setup:** A particle is trapped between $x=0$ and $x=L$ by infinitely high walls:
+
+```
+ ∞ |            | ∞
+   |            |
+   |    V=0     |
+   |            |
+   0 ---------- L
+```
+
+Since the walls are infinitely high, the particle has **zero probability** of being found there:
+
+$$\psi(0) = 0, \qquad \psi(L) = 0$$
+
+**Inside the well**, $V = 0$, so the time-independent Schrödinger equation becomes:
+
+$$-\frac{\hbar^2}{2m}\psi'' = E\psi \quad\Rightarrow\quad \psi'' + k^2\psi = 0, \quad \text{where } k^2 = \frac{2mE}{\hbar^2}$$
+
+This is the classic second-order ODE with general solution:
+
+$$\psi(x) = A\sin(kx) + B\cos(kx)$$
+
+**Apply boundary conditions:**
+
+- At $x=0$: $\psi(0) = B = 0$ → so $B=0$.
+- At $x=L$: $\psi(L) = A\sin(kL) = 0$. Since $A\ne 0$ (else no particle), we need $\sin(kL)=0$, i.e.
+
+$$kL = n\pi, \quad n = 1,2,3,\dots \quad\Rightarrow\quad k = \frac{n\pi}{L}$$
+
+**Normalized wavefunctions** (using the same normalization procedure as Example 1.1):
+
+$$\psi_n(x) = \sqrt{\frac{2}{L}}\,\sin\!\left(\frac{n\pi x}{L}\right)$$
+
+**Energy levels**, from $k^2 = 2mE/\hbar^2$:
+
+$$E_n = \frac{n^2\pi^2\hbar^2}{2mL^2}, \quad n = 1, 2, 3, \dots$$
+
+### Why energy is quantized
+
+Only integer values of $n$ satisfy the boundary conditions — there's no continuous knob to turn. This discreteness is called **energy quantization**, and it's a direct consequence of confinement (compare: a guitar string fixed at both ends can only vibrate at discrete harmonics).
+
+### Why $n=0$ is impossible
+
+If $n=0$, then $k=0$ and $\psi(x) = 0$ everywhere — meaning the particle doesn't exist. Physically, this also violates the **Heisenberg Uncertainty Principle**:
+
+$$\Delta x \, \Delta p \ge \frac{\hbar}{2}$$
+
+The particle is confined to a region of finite size $L$ (so $\Delta x$ is finite, not infinite), which forces $\Delta p$ — and hence the kinetic energy — to be strictly greater than zero. A trapped particle can never be perfectly at rest.
+
+---
+
+## 7. Probability Distributions in the Well
+
+**Prerequisite:** Section 6.
+
+The probability density is $|\psi_n(x)|^2 = \dfrac{2}{L}\sin^2\!\left(\dfrac{n\pi x}{L}\right)$.
+
+- **Ground state ($n=1$):** $\sin^2(\pi x/L)$ peaks at the **center** of the well ($x=L/2$) — the particle is most likely found in the middle.
+- **First excited state ($n=2$):** $\sin^2(2\pi x/L)$ has **two peaks** and a **node** (zero probability) exactly at the center — the particle is *never* found in the middle in this state.
+
+This is the standard "sine-squared with $n$ humps and $n-1$ interior nodes" pattern.
+
+---
+
+## 8. Expectation Values
+
+**Prerequisite:** Sections 1, 2, 6; the idea of an average from probability (weighted mean).
+
+**Concept:** Since we only know probabilities, not exact values, the "average result of many measurements" is called the **expectation value**, computed by sandwiching the operator between $\psi^*$ and $\psi$:
+
+$$\langle x \rangle = \int \psi^* \, x\, \psi \, dx, \qquad \langle P \rangle = \int \psi^* \left(-i\hbar\frac{d}{dx}\right) \psi \, dx$$
+
+**For the infinite well:**
+
+- $\langle x \rangle = L/2$ — by symmetry, the well is symmetric about its center, so the average position is the midpoint regardless of which state $n$ you're in.
+- $\langle P \rangle = 0$ — the standing wave $\sin(n\pi x/L)$ is an equal superposition of a rightward-moving and leftward-moving wave; their momenta cancel on average.
+
+**Solved Example 8.1**
+Verify $\langle x\rangle = L/2$ for the ground state $n=1$.
+
+$$\langle x \rangle = \int_0^L \frac{2}{L}\sin^2\!\left(\frac{\pi x}{L}\right) x\, dx$$
+
+Using $\sin^2\theta = \frac{1-\cos2\theta}{2}$:
+
+$$\langle x \rangle = \frac{1}{L}\int_0^L x\,dx - \frac{1}{L}\int_0^L x\cos\!\left(\frac{2\pi x}{L}\right)dx$$
+
+The first term gives $\dfrac{1}{L}\cdot\dfrac{L^2}{2} = \dfrac{L}{2}$. The second integral vanishes by symmetry (integration by parts shows the boundary and oscillatory terms cancel over a full period). So:
+
+$$\langle x \rangle = \frac{L}{2} \checkmark$$
+
+---
+
+## 9. Uncertainty (Variance)
+
+**Prerequisite:** Section 8, basic statistics ($\text{Var} = \langle x^2\rangle - \langle x\rangle^2$).
+
+$$(\Delta x)^2 = \langle x^2 \rangle - \langle x \rangle^2, \qquad (\Delta p)^2 = \langle p^2 \rangle - \langle p \rangle^2$$
+
+This is exactly the variance formula from statistics, applied to a quantum probability distribution instead of a classical one. Computing $(\Delta x)(\Delta p)$ for the infinite well and checking it against $\hbar/2$ is the standard way to verify the Uncertainty Principle numerically for this system.
+
+---
+
+## 10. The Finite Potential Well
+
+**Prerequisite:** Section 6 (infinite well), the idea of exponential decay ($e^{-\alpha x}$).
+
+**Setup:** Now the walls have finite height $V_0$ instead of infinite:
+
+```
+V₀ |            | V₀
+   |            |
+   |    V=0     |
+   |____________|
+```
+
+**Key difference:** Classically, if the particle's energy $E < V_0$, it's *strictly forbidden* from the wall region — it doesn't have enough energy to be there. Quantum mechanically, the wavefunction does **not** drop to zero at the walls. Instead, outside the well it decays smoothly as an **evanescent wave**:
+
+$$\psi(x) \sim e^{-\alpha x}, \qquad \alpha = \frac{\sqrt{2m(V_0-E)}}{\hbar}$$
+
+So there's a small but nonzero probability of finding the particle *inside the classically forbidden wall region*.
+
+---
+
+## 11. Quantum Tunneling
+
+**Prerequisite:** Section 10 (evanescent wave).
+
+**Concept:** If instead of a single wall you have a **finite-width barrier**, the evanescent wave can survive all the way through to the other side and re-emerge as a traveling wave. This means the particle has a nonzero probability of appearing on the far side of a barrier it classically could never cross — this is **quantum tunneling**, and it has no classical analog whatsoever.
+
+The transmission probability decreases as the barrier gets taller ($V_0$ larger), wider (barrier width larger), or as the particle's effective mass $m$ increases — this is the key trend used in Section 13.
+
+---
+
+## 12. Boundary Conditions
+
+**Prerequisite:** Sections 6, 10.
+
+For any well problem, two conditions pin down the unknown constants in the general solution:
+
+1. **$\psi$ is continuous** across every boundary (no jumps in probability amplitude).
+2. **$d\psi/dx$ is continuous** across every boundary where $V$ is finite (this comes from the Schrödinger equation itself requiring $\psi''$ to be well-behaved; it's relaxed only at an infinite step, like the infinite well).
+
+These two matching conditions, applied at each boundary, are exactly what let you solve for $A$, $B$, and the allowed values of $k$ or $\alpha$ in any well or barrier problem.
+
+---
+
+## 13. MOSFET Connection
+
+**Prerequisite:** Sections 10–11 (finite well, tunneling); basic idea of a transistor's gate oxide.
+
+**Concept:** In a MOSFET, the electron sitting under the gate, confined by the oxide layer, is physically modeled exactly like a particle in a **finite potential well**. If the oxide (the "wall") is thin enough, the electron's wavefunction leaks through it via tunneling — this shows up as an unwanted **gate leakage current**, a real, measurable effect in modern transistors as oxide layers get thinner.
+
+**Ways to reduce leakage** (directly from Section 11's trends):
+
+- ✔ **Increase oxide thickness** — increases barrier width, exponentially suppressing tunneling.
+- ✔ **Increase barrier height** — use a higher-$V_0$ dielectric material.
+- ✔ **Increase effective mass** — larger $m$ in $\alpha = \sqrt{2m(V_0-E)}/\hbar$ increases the decay rate, shrinking the tunneling probability.
+
+This is a direct, real-world engineering consequence of Sections 10–11.
+
+---
+
+## 14. Solved Examples (Exam-Level)
+
+**Example 14.1 — Ground-state energy of an infinite well**
+
+*A particle of mass $m$ is in a 1D infinite well of width $L$. Find the ground-state energy.*
+
+Wavefunction: $\psi_1(x) = \sqrt{\dfrac{2}{L}}\sin\!\left(\dfrac{\pi x}{L}\right)$
+
+Wave number: $k = \dfrac{\pi}{L}$
+
+Energy: $E_1 = \dfrac{\hbar^2 k^2}{2m} = \dfrac{\pi^2\hbar^2}{2mL^2}$
+
+**Example 14.2 — Energy of the 3rd excited state**
+
+*Using the same well, find $E_4$ (the 3rd excited state, since $n=1$ is the ground state) in terms of $E_1$.*
+
+$$E_n = n^2 E_1 \quad\Rightarrow\quad E_4 = 16\,E_1 = \frac{16\pi^2\hbar^2}{2mL^2} = \frac{8\pi^2\hbar^2}{mL^2}$$
+
+Note the pattern: energy levels grow as $n^2$, not linearly — level spacing gets *wider* as $n$ increases.
+
+**Example 14.3 — Momentum eigenvalue of a plane wave**
+
+*Find the momentum eigenvalue of $\psi = e^{i(3)x}$ (i.e., $k=3\,\text{m}^{-1}$).*
+
+$$\hat P \psi = -i\hbar \frac{d}{dx}e^{i3x} = -i\hbar(3i)e^{i3x} = 3\hbar\, e^{i3x}$$
+
+So $P = 3\hbar$ — matches $P=\hbar k$ directly.
+
+**Example 14.4 — Probability of finding a particle in the left half of a well**
+
+*For the ground state ($n=1$) of an infinite well, find the probability of finding the particle in $0 \le x \le L/2$.*
+
+$$P = \int_0^{L/2} \frac{2}{L}\sin^2\!\left(\frac{\pi x}{L}\right)dx$$
+
+By the symmetry of $\psi_1$ about the center ($x=L/2$) — the probability density is a mirror image on both halves — this must equal exactly **1/2**, without even doing the integral. (You can confirm by direct integration using $\sin^2\theta = \frac{1-\cos2\theta}{2}$; the two pieces work out to exactly $1/2$.)
+
+**Example 14.5 — Tunneling trend (MOSFET-style)**
+
+*A barrier's decay constant is $\alpha = \sqrt{2m(V_0-E)}/\hbar$. If the oxide thickness is doubled, roughly how does the tunneling probability change, given transmission $\sim e^{-2\alpha d}$?*
+
+Since $d \to 2d$, the exponent $-2\alpha d \to -4\alpha d$ — the tunneling probability is **squared** (i.e., it drops dramatically, since $e^{-4\alpha d} = (e^{-2\alpha d})^2$). This is exactly why engineers add even a small amount of extra oxide thickness to sharply cut leakage current.
+
+---
+
+### How the pieces fit together (big picture)
+
+$$\text{Wavefunction \& normalization (§1)} \to \text{Operators (§2)} \to \text{Schrödinger Eq. (§3)} \to \text{Separation of variables (§4)} \to \text{Eigenvalue problem } \hat H\psi = E\psi \text{ (§5)}$$
+
+$$\downarrow \text{ solve for a specific } V(x)$$
+
+$$\text{Infinite well (§6–9): exact quantization} \quad|\quad \text{Finite well \& barrier (§10–12): leakage \& tunneling} \to \text{MOSFET (§13)}$$
+
+Every later section is just "apply the machinery from §1–5 to a new shape of $V(x)$."
